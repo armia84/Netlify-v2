@@ -17,8 +17,10 @@ const STRIP_HEADERS = new Set([
 ]);
 
 function getUpstreamPath(pathname) {
-  if (pathname === "/api") return "/";
-  if (pathname.startsWith("/api/")) return pathname.slice(4);
+  if (pathname === "/MAteam") return "/";
+  if (pathname.startsWith("/MAteam/")) {
+    return pathname.slice("/MAteam".length);
+  }
   return pathname;
 }
 
@@ -29,8 +31,11 @@ export default async function handler(request) {
 
   try {
     const url = new URL(request.url);
+
     const upstreamPath = getUpstreamPath(url.pathname);
-    const targetUrl = `${TARGET_BASE}${upstreamPath}${url.search}`;
+
+    const targetUrl =
+      `${TARGET_BASE}${upstreamPath}${url.search}`;
 
     const headers = new Headers();
     let clientIp = null;
@@ -38,7 +43,11 @@ export default async function handler(request) {
     for (const [key, value] of request.headers) {
       const k = key.toLowerCase();
 
-      if (STRIP_HEADERS.has(k) || k.startsWith("x-nf-") || k.startsWith("x-netlify-")) {
+      if (
+        STRIP_HEADERS.has(k) ||
+        k.startsWith("x-nf-") ||
+        k.startsWith("x-netlify-")
+      ) {
         continue;
       }
 
@@ -60,7 +69,6 @@ export default async function handler(request) {
     }
 
     const method = request.method;
-    const hasBody = method !== "GET" && method !== "HEAD";
 
     const fetchOptions = {
       method,
@@ -68,13 +76,14 @@ export default async function handler(request) {
       redirect: "manual",
     };
 
-    if (hasBody) {
+    if (method !== "GET" && method !== "HEAD") {
       fetchOptions.body = request.body;
     }
 
     const upstream = await fetch(targetUrl, fetchOptions);
 
     const responseHeaders = new Headers();
+
     for (const [key, value] of upstream.headers) {
       if (key.toLowerCase() === "transfer-encoding") continue;
       responseHeaders.set(key, value);
@@ -85,6 +94,8 @@ export default async function handler(request) {
       headers: responseHeaders,
     });
   } catch {
-    return new Response("Bad Gateway: Relay Failed", { status: 502 });
+    return new Response("Bad Gateway: Relay Failed", {
+      status: 502,
+    });
   }
 }
