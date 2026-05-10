@@ -5,4 +5,4 @@ edge_functions = "edge-functions"
 
 [[edge_functions]]
 function = "proxy"
-path = "/api/*"
+path = "/MAteam/*"
