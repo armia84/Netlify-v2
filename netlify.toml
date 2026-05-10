@@ -1,0 +1,8 @@
+[build]
+command = "npm run build"
+publish = "public"
+edge_functions = "edge-functions"
+
+[[edge_functions]]
+function = "proxy"
+path = "/api/*"
